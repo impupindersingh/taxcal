@@ -11,21 +11,21 @@ app.use(bodyParser.json());
 var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
     ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
 
-// var mongoUser =  process.env.MONGODB_USER,
-//     mongoDatabase = process.env.MONGODB_DATABASE,
-//     mongoPassword = process.env.MONGODB_PASSWORD,
-//     mongoHost = process.env.TAXCALCDB_SERVICE_HOST,
-//     mongoPort = process.env.TAXCALCDB_SERVICE_PORT,
-//     mongoURL = 'mongodb://';
+var mongoUser =  process.env.MONGODB_USER,
+    mongoDatabase = process.env.MONGODB_DATABASE,
+    mongoPassword = process.env.MONGODB_PASSWORD,
+    mongoHost = process.env.TAXCALCDB_SERVICE_HOST,
+    mongoPort = process.env.TAXCALCDB_SERVICE_PORT,
+    mongoURL = 'mongodb://';
 
-// mongoURL += mongoUser + ':' + mongoPassword + '@';
-// mongoURL += mongoHost + ':' +  mongoPort + '/' + mongoDatabase;
+mongoURL += mongoUser + ':' + mongoPassword + '@';
+mongoURL += mongoHost + ':' +  mongoPort + '/' + mongoDatabase;
 
-// mongoose.connect(mongoURL);
+mongoose.connect(mongoURL);
 
 var Transaction = require('./models/transaction');
-const factorConfig = require('./src/12-factor-config');
-console.log(factorConfig.appName,factorConfig.desiredPort);
+const factorConfig = require('./src/configs/12-factor-config');
+console.log('+++++++++',factorConfig.desiredPort);
 var route = express.Router();
 
 // All our services are under the /api context
@@ -41,36 +41,34 @@ route.get('/', function(req, res) {
 // This route handles tax calculation for our service
 route.route('/calculate')
      .post(function(req, res) {
-        res.json({ message: 'OK, I am post message',
+
+        var tx = new Transaction();
+        tx.tx_id = req.body.id;
+        tx.amount = req.body.amount;
+
+        // Assume a 30% tax on all orders
+        var finalAmount = tx.amount + (tx.amount * .2);
+
+        tx.save(function(e) {
+            if (e)
+                res.send('ERROR: '+ e);
+
+            res.json({ message: 'OK',
+                      finalAmount: finalAmount
             });
-        // var tx = new Transaction();
-        // tx.tx_id = req.body.id;
-        // tx.amount = req.body.amount;
-
-        // // Assume a 30% tax on all orders
-        // var finalAmount = tx.amount + (tx.amount * .2);
-
-        // tx.save(function(e) {
-        //     if (e)
-        //         res.send('ERROR: '+ e);
-
-        //     res.json({ message: 'OK',
-        //               finalAmount: finalAmount
-        //     });
-        // });
+        });
 
     });
 
 // This route dumps all transactions
 route.route('/list')
      .get(function(req, res) {
-        res.json({message: "I am getting the list"});
-    //    Transaction.find(function(err, txs) {
-    //     if (err)
-    //       res.send(err);
+       Transaction.find(function(err, txs) {
+        if (err)
+          res.send(err);
 
-    //     res.json(txs);
-    //    });
+        res.json(txs);
+       });
     });
 
 app.listen(port, ip);

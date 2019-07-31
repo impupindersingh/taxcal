@@ -1,3 +1,6 @@
+const factorConfig = require('./src/configs/12-factor-config');
+console.log('+++++++++',factorConfig.desiredPort);
+
 var express = require('express'),
     app     = express(),
     bodyParser = require('body-parser'),
@@ -24,8 +27,7 @@ mongoURL += mongoHost + ':' +  mongoPort + '/' + mongoDatabase;
 mongoose.connect(mongoURL);
 
 var Transaction = require('./models/transaction');
-const factorConfig = require('./src/configs/12-factor-config');
-console.log('+++++++++',factorConfig.desiredPort);
+
 var route = express.Router();
 
 // All our services are under the /api context

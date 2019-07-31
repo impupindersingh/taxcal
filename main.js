@@ -1,7 +1,7 @@
 const factorConfig = require('./src/configs/12-factor-config');
 console.log('+++++++++',factorConfig.desiredPort);
 
-async function initialize() {
+function initialize() {
     let ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
     const app = require('./src/app');
     const port = parseInt(factorConfig.desiredPort, 10);
